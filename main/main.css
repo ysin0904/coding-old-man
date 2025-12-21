@@ -227,3 +227,8 @@ h1 {
     font-size: large;
     border-radius: 5px;
 }
+.search-input {
+    height: 48px;
+    line-height: 48px;
+    box-sizing: border-box;
+}
