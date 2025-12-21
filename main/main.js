@@ -1,12 +1,7 @@
-const WORKER_URL = "https://-gemini-proxy.ysin0904.workers.dev";
+const WORKER_URL = "https://gemini-proxy.ysin0904.workers.dev";
 
 const MAX_TURNS = 8;
-const MAX_OUTPUT_TOKENS = 1024;
-
-const AppState = {
-    initialized: false,
-    queuedPrompts: []
-};
+const history = [];
 
 function buildSystemInstruction() {
     return `
@@ -16,6 +11,14 @@ function buildSystemInstruction() {
 마크다운 문법은 사용하지 마세요.
 `.trim();
 }
+
+window.selectPrompt = function (text) {
+    const inputEl = document.getElementById("userInput");
+    const sendBtn = document.getElementById("sendButton");
+
+    inputEl.value = text;
+    sendBtn.click();
+};
 
 document.addEventListener("DOMContentLoaded", () => {
     const inputEl = document.getElementById("userInput");
@@ -28,49 +31,38 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    const history = [];
-
-    function scrollToBottom() {
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    sendBtn.addEventListener("click", () => sendMessage(inputEl.value));
-    inputEl.addEventListener("keydown", e => {
+    sendBtn.addEventListener("click", sendMessage);
+    inputEl.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
             e.preventDefault();
-            sendMessage(inputEl.value);
+            sendMessage();
         }
     });
 
-    AppState.initialized = true;
-
-    async function sendMessage(rawText) {
-        const text = (rawText || "").trim();
+    async function sendMessage() {
+        const text = inputEl.value.trim();
         if (!text) return;
 
         defaultMessage.style.display = "none";
+        inputEl.value = "";
         sendBtn.disabled = true;
 
         appendMessage("user", text);
-        scrollToBottom();
 
         history.push({ role: "user", text });
         trimHistory();
 
-        inputEl.value = "";
-
         const loadingId = appendMessage("ai", "답변을 작성 중입니다. 잠시만 기다려 주세요...");
-        scrollToBottom();
 
         try {
-            const aiText = await requestAI(history);
-            replaceMessageText(loadingId, aiText);
+            const aiText = await requestAI();
+            replaceMessage(loadingId, aiText);
 
-            history.push({ role: "assistant", text: aiText });
+            history.push({ role: "model", text: aiText });
             trimHistory();
-        } catch (err) {
-            replaceMessageText(loadingId, "죄송합니다. 답변을 가져오지 못했습니다.");
-            console.error(err);
+        } catch (e) {
+            replaceMessage(loadingId, "서버 오류로 답변을 받지 못했습니다.");
+            console.error(e);
         } finally {
             sendBtn.disabled = false;
             scrollToBottom();
@@ -83,10 +75,19 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    async function requestAI(messages) {
+    function scrollToBottom() {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    async function requestAI() {
         const payload = {
-            system: buildSystemInstruction(),
-            messages
+            contents: history.map(m => ({
+                role: m.role === "model" ? "model" : "user",
+                parts: [{ text: m.text }]
+            })),
+            systemInstruction: {
+                parts: [{ text: buildSystemInstruction() }]
+            }
         };
 
         const response = await fetch(WORKER_URL, {
@@ -100,15 +101,20 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const data = await response.json();
-        return data.text || "";
-    }
 
+        return (
+            data?.candidates?.[0]?.content?.parts
+                ?.map(p => p.text || "")
+                .join("")
+            || "답변을 생성하지 못했습니다."
+        );
+    }
     function appendMessage(role, text) {
-        const id = `msg_${Date.now()}`;
+        const id = "msg_" + Date.now();
 
         const wrapper = document.createElement("div");
         wrapper.className = role === "user" ? "my-question" : "AI-question";
-        wrapper.dataset.msgId = id;
+        wrapper.dataset.id = id;
 
         const bubble = document.createElement("div");
         bubble.className = role === "user" ? "my-answer" : "AI-answer";
@@ -116,13 +122,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         wrapper.appendChild(bubble);
         chatContainer.appendChild(wrapper);
+        scrollToBottom();
 
         return id;
     }
 
-    function replaceMessageText(msgId, newText) {
-        const target = chatContainer.querySelector(`[data-msg-id="${msgId}"]`);
-        if (!target) return;
-        target.querySelector("div").textContent = newText;
+    function replaceMessage(id, text) {
+        const el = chatContainer.querySelector(`[data-id="${id}"] .AI-answer`);
+        if (el) el.textContent = text;
     }
 });
