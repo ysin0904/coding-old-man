@@ -1,4 +1,4 @@
-const GEMINI_API_KEY = "AIzaSyB4amRjGgCcXHGiU0ZhZDwDIFsQzF_yfKM";
+const GEMINI_API_KEY = "AIzaSyCkE-AnLhNdHsMSv_8Wrlu-xerQltq4dd8";
 const GEMINI_MODEL = "gemini-2.5-flash";
 const USE_CHAT_HISTORY = true;
 const MAX_TURNS = 8; 
