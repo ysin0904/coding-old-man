@@ -30,7 +30,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (defaultMessage) defaultMessage.style.display = "none";
     sendBtn.disabled = true;
 
-
     appendMessage("user", text);
     scrollToBottom();
     history.push({ role: "user", text });
@@ -50,8 +49,8 @@ document.addEventListener("DOMContentLoaded", () => {
         history.splice(0, history.length - MAX_TURNS * 2);
       }
     } catch (err) {
-      console.error("에러 발생:", err);
-      updateMessageText(loadingId, "연결에 문제가 생겼어요. 다시 한 번 말씀해 주시겠어요?");
+      console.error("에러 상세:", err);
+      updateMessageText(loadingId, `오류가 발생했어요: ${err.message}`);
     } finally {
       sendBtn.disabled = false;
       scrollToBottom();
@@ -74,24 +73,26 @@ document.addEventListener("DOMContentLoaded", () => {
       })
     });
 
-    if (!response.ok) throw new Error("서버 응답 실패");
+    if (!response.ok) {
+      let errorDetail = "";
+      try {
+        const errorJson = await response.json();
+        errorDetail = errorJson.error?.message || errorJson.error || "알 수 없는 에러";
+      } catch (e) {
+        errorDetail = `상태 코드: ${response.status}`;
+      }
+      throw new Error(errorDetail);
+    }
 
     const data = await response.json();
-    console.log("받은 데이터 구조:", data); 
+    
     if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
         return data.candidates[0].content.parts[0].text;
-    }
-    if (data.text) {
-        return data.text;
-    }
-    if (typeof data === "string") {
-        return data;
-    }
-    if (data.error) {
-        return `서버 에러: ${data.error.message || "알 수 없는 오류"}`;
+    } else if (data.error) {
+        throw new Error(data.error.message || "API 내부 오류");
     }
 
-    return "답변 내용을 찾을 수 없습니다. (데이터 구조 불일치)";
+    return "답변 데이터를 읽을 수 없습니다. (구조 문제)";
   }
 
   function appendMessage(role, text) {
@@ -129,5 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 const modalOverlay = document.getElementById("modalOverlay");
-document.getElementById("openBtn")?.addEventListener("click", () => modalOverlay.style.display = "flex");
-document.getElementById("closeBtn")?.addEventListener("click", () => modalOverlay.style.display = "none");
+if(modalOverlay) {
+    document.getElementById("openBtn")?.addEventListener("click", () => modalOverlay.style.display = "flex");
+    document.getElementById("closeBtn")?.addEventListener("click", () => modalOverlay.style.display = "none");
+}
