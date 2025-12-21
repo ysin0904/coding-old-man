@@ -1,0 +1,229 @@
+body { font-family: 'Inter', sans-serif; }
+
+@media (min-width: 640px) {
+    body {
+        display: grid;
+        grid-template-columns: 270px 1fr;
+        min-height: 100vh;
+        margin: 0;
+    }
+}
+
+#sidebar {
+    background-color: #F3F7EB;
+}
+h1 {
+    color: #6AA84F;
+    margin-left: 20px;
+    padding-top: 20px;
+}
+.side {
+    padding-left: 15px;
+}
+
+#main-container {
+    background-color: #FFFFFF;
+}
+.main-section {
+    padding: 10px;
+    text-align: center;
+}
+
+
+.question, .phone, .game {
+    display: block;
+    text-decoration: none;
+    border: 1px solid #A9D143;
+    padding: 12px 10px;
+    margin: 10px 10px;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    background-color: #A9D143;
+    text-align: center;
+}
+.question-button,.phone-button,.game-button {
+    margin-bottom: 40px;
+}
+
+.AnserSection {
+    min-height: 450px;
+    border: 1px solid #D1D5DB; 
+    padding: 10px;
+    margin: 20px 0;
+    border-radius: 8px;
+    overflow-y:auto;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    background-color: white;
+}
+
+#defaultMessage {
+    text-align: center;
+    color: #9CA3AF; 
+    padding: 20px;
+    font-size: 1.1rem;
+    font-style: italic;
+}
+
+.my-question, .AI-question {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    max-width: 90%;
+}
+
+.my-question {
+    justify-content: flex-end;
+    margin-left: auto;
+}
+
+.AI-question {
+    margin-right: auto;
+}
+
+.my-character-logo, .AI-character-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+}
+
+.my-character-logo {
+    background-color: #6AA84F; 
+    order: 2; 
+    margin-left: 10px;
+}
+
+.AI-character-logo {
+    background-color: #A9D143; 
+    order: 1; 
+    margin-right: 10px;
+}
+
+.my-answer, .AI-answer {
+    padding: 12px 18px;
+    border-radius: 20px;
+    max-width: 100%;
+    word-wrap: break-word;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.my-answer {
+    background-color: #6AA84F;
+    color: white;
+    border-bottom-right-radius: 2px;
+    order: 1;
+}
+
+.AI-answer {
+    background-color: #FFFFFF;
+    color: #374151;
+    border: 1px solid #D1D5DB;
+    border-bottom-left-radius: 2px;
+    order: 2;
+}
+
+.direct-writing, .direct-question {
+    font-size: 1.125rem; 
+    font-weight: 700; 
+    text-align: left;
+    margin-left: 10px;
+}
+
+
+.search-input {
+    width: 80%; 
+    padding: 12px 15px;
+    border-radius: 4px;
+    border: 1px solid #D1D5DB;
+    margin-bottom: 10px;
+}
+
+
+.sendbuttonclass {
+    width: 18%; 
+    padding: 12px 15px;
+    background-color: #6AA84F;
+    border-radius: 4px;
+    border: 1px solid #6AA84F;
+    color: white;
+    font-weight: bold;
+    font-size: large;
+    margin-left: 1%;
+    cursor: pointer;
+}
+
+.divide-line {
+    border: 0;
+    height: 1px;
+    background: #D1D5DB;
+    margin: 20px 0;
+}
+.main-help {
+    margin-top: 30px;
+}
+.main-question {
+    font-weight: bold;
+    font-size: larger;
+    margin-bottom: 15px;
+}
+.guide-button {
+    text-decoration: none;
+    border: 1px solid #6AA84F;
+    background-color: #6AA84F;
+    color: white;
+    padding: 10px 25px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: large;
+    cursor: pointer;
+}
+
+#modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+#modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.de1, .de2, .de3 {
+    font-weight: bold;
+    font-size: large;
+    margin-bottom: 15px;
+}
+#closeBtn {
+    background-color: #A9D143;
+    font-weight: bold;
+    color: white;
+    border: 1px solid #A9D143;
+    padding: 7px 15px;
+    border-radius: 4px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+.prompt-button1,.prompt-button2,.prompt-button3,.prompt-button4{
+    border: 1px solid #A9D143;
+    background-color: #A9D143;
+    color: white;
+    padding: 15px 40px;
+    margin-right: 28px;
+    font-weight: bold;
+    font-size: large;
+    border-radius: 5px;
+}
