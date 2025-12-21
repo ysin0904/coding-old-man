@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>치매 예방 기억력 게임</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="game11.css" />
+</head>
+
+<body>
+    <div id="sidebar">
+        <header>
+            <h1>돌봄이</h1>
+        </header>
+        
+        <nav class="sidebar-nav">
+            <a href="../main/main.html" class="sidebar-link">AI에게 질문하기</a>
+            <a href="../phone/phone.html" class="sidebar-link">최신 전자기기 사용법</a>
+            <a href="game11.html" class="sidebar-link current-game">치매 예방 게임하기</a>
+        </nav>
+    </div>
+    <div id="game-area">
+        <div id="game-wrapper" class="wrapper hidden">
+            
+            <div class="stats-container">
+                <div class="stat">뒤집은 횟수: <span id="moves-count">0</span></div>
+                <div class="stat">시간: <span id="time">0s</span></div>
+            </div>
+            
+            <div id="game-container" class="game-grid">
+            </div>
+            
+            <button id="stop" class="stop-button hidden">게임 그만하기</button>
+        </div>
+        <div id="controls-overlay">
+            <div class="controls-content">
+                 <p id="result">
+                    <span id="result-message">치매 예방 기억력 게임</span>
+                 </p>
+                 <button id="start" class="start-button">
+                    게임 시작하기
+                 </button>
+            </div>
+        </div>
+    </div>
+    <script src="game11.js"></script>
+</body>
+</html>
