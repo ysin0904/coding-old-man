@@ -1,6 +1,3 @@
-// ================================
-// 설정
-// ================================
 const WORKER_URL = "https://gemini-proxy.ysin0904.workers.dev";
 
 const MAX_TURNS = 8;
@@ -10,10 +7,6 @@ const AppState = {
     initialized: false,
     queuedPrompts: []
 };
-
-// ================================
-// 시스템 프롬프트
-// ================================
 function buildSystemInstruction() {
     return `
 당신은 노년층 사용자를 돕는 친절하고 따뜻한 한국어 AI 도우미 '돌봄이'입니다.
@@ -22,10 +15,6 @@ function buildSystemInstruction() {
 마크다운 문법은 사용하지 마세요.
 `.trim();
 }
-
-// ================================
-// DOM 로드 후 실행
-// ================================
 document.addEventListener("DOMContentLoaded", () => {
     const inputEl = document.getElementById("userInput");
     const sendBtn = document.getElementById("sendButton");
@@ -50,8 +39,6 @@ document.addEventListener("DOMContentLoaded", () => {
             sendMessage(inputEl.value);
         }
     });
-
-    // 버튼 프롬프트용 전역 함수
     window.selectPrompt = (text) => {
         if (!AppState.initialized) {
             AppState.queuedPrompts.push(text);
@@ -61,10 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     AppState.initialized = true;
-
-    // ================================
-    // 메시지 전송
-    // ================================
     async function sendMessage(rawText) {
         const text = (rawText || "").trim();
         if (!text) return;
@@ -109,10 +92,6 @@ document.addEventListener("DOMContentLoaded", () => {
             history.splice(0, history.length - MAX_TURNS * 2);
         }
     }
-
-    // ================================
-    // 🔥 Gemini 요청 (정상 포맷)
-    // ================================
     async function requestAI(messages) {
         const contents = messages.map(m => ({
             role: m.role === "assistant" ? "model" : "user",
@@ -144,10 +123,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const parts = data?.candidates?.[0]?.content?.parts || [];
         return parts.map(p => p.text || "").join("");
     }
-
-    // ================================
-    // UI 출력
-    // ================================
     function appendMessage(role, text) {
         const id = `msg_${Date.now()}_${Math.random()}`;
 
