@@ -148,3 +148,22 @@ document.addEventListener("DOMContentLoaded", () => {
         target.querySelector("div").textContent = newText;
     }
 });
+const openBtn = document.getElementById("openBtn");
+const closeBtn = document.getElementById("closeBtn");
+const modalOverlay = document.getElementById("modalOverlay");
+
+if (openBtn && closeBtn && modalOverlay) {
+    openBtn.addEventListener("click", () => {
+        modalOverlay.style.display = "flex";
+    });
+
+    closeBtn.addEventListener("click", () => {
+        modalOverlay.style.display = "none";
+    });
+
+    modalOverlay.addEventListener("click", (e) => {
+        if (e.target === modalOverlay) {
+            modalOverlay.style.display = "none";
+        }
+    });
+}
