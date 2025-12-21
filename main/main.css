@@ -47,7 +47,9 @@ h1 {
 }
 
 .AnserSection {
-    min-height: 450px;
+    min-height: 48px;
+    height: 48px;
+    line-height: 48px;
     border: 1px solid #D1D5DB; 
     padding: 10px;
     margin: 20px 0;
