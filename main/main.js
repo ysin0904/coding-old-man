@@ -1,8 +1,19 @@
+// ================================
+// 설정
+// ================================
 const WORKER_URL = "https://gemini-proxy.ysin0904.workers.dev";
 
 const MAX_TURNS = 8;
-const history = [];
+const MAX_OUTPUT_TOKENS = 1024;
 
+const AppState = {
+    initialized: false,
+    queuedPrompts: []
+};
+
+// ================================
+// 시스템 프롬프트
+// ================================
 function buildSystemInstruction() {
     return `
 당신은 노년층 사용자를 돕는 친절하고 따뜻한 한국어 AI 도우미 '돌봄이'입니다.
@@ -12,14 +23,9 @@ function buildSystemInstruction() {
 `.trim();
 }
 
-window.selectPrompt = function (text) {
-    const inputEl = document.getElementById("userInput");
-    const sendBtn = document.getElementById("sendButton");
-
-    inputEl.value = text;
-    sendBtn.click();
-};
-
+// ================================
+// DOM 로드 후 실행
+// ================================
 document.addEventListener("DOMContentLoaded", () => {
     const inputEl = document.getElementById("userInput");
     const sendBtn = document.getElementById("sendButton");
@@ -31,38 +37,67 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    sendBtn.addEventListener("click", sendMessage);
+    const history = [];
+
+    function scrollToBottom() {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    sendBtn.addEventListener("click", () => sendMessage(inputEl.value));
     inputEl.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
             e.preventDefault();
-            sendMessage();
+            sendMessage(inputEl.value);
         }
     });
 
-    async function sendMessage() {
-        const text = inputEl.value.trim();
+    // 버튼 프롬프트용 전역 함수
+    window.selectPrompt = (text) => {
+        if (!AppState.initialized) {
+            AppState.queuedPrompts.push(text);
+            return;
+        }
+        sendMessage(text);
+    };
+
+    AppState.initialized = true;
+
+    // ================================
+    // 메시지 전송
+    // ================================
+    async function sendMessage(rawText) {
+        const text = (rawText || "").trim();
         if (!text) return;
 
         defaultMessage.style.display = "none";
-        inputEl.value = "";
         sendBtn.disabled = true;
 
         appendMessage("user", text);
+        scrollToBottom();
 
         history.push({ role: "user", text });
         trimHistory();
 
-        const loadingId = appendMessage("ai", "답변을 작성 중입니다. 잠시만 기다려 주세요...");
+        inputEl.value = "";
+
+        const loadingId = appendMessage(
+            "ai",
+            "답변을 작성 중입니다. 잠시만 기다려 주세요..."
+        );
+        scrollToBottom();
 
         try {
-            const aiText = await requestAI();
-            replaceMessage(loadingId, aiText);
+            const aiText = await requestAI(history);
+            replaceMessageText(loadingId, aiText);
 
-            history.push({ role: "model", text: aiText });
+            history.push({ role: "assistant", text: aiText });
             trimHistory();
-        } catch (e) {
-            replaceMessage(loadingId, "서버 오류로 답변을 받지 못했습니다.");
-            console.error(e);
+        } catch (err) {
+            console.error(err);
+            replaceMessageText(
+                loadingId,
+                "죄송합니다. 서버 오류로 답변을 가져오지 못했습니다."
+            );
         } finally {
             sendBtn.disabled = false;
             scrollToBottom();
@@ -75,18 +110,23 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function scrollToBottom() {
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
+    // ================================
+    // 🔥 Gemini 요청 (정상 포맷)
+    // ================================
+    async function requestAI(messages) {
+        const contents = messages.map(m => ({
+            role: m.role === "assistant" ? "model" : "user",
+            parts: [{ text: m.text }]
+        }));
 
-    async function requestAI() {
         const payload = {
-            contents: history.map(m => ({
-                role: m.role === "model" ? "model" : "user",
-                parts: [{ text: m.text }]
-            })),
+            contents,
             systemInstruction: {
                 parts: [{ text: buildSystemInstruction() }]
+            },
+            generationConfig: {
+                temperature: 0.6,
+                maxOutputTokens: MAX_OUTPUT_TOKENS
             }
         };
 
@@ -101,20 +141,19 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const data = await response.json();
-
-        return (
-            data?.candidates?.[0]?.content?.parts
-                ?.map(p => p.text || "")
-                .join("")
-            || "답변을 생성하지 못했습니다."
-        );
+        const parts = data?.candidates?.[0]?.content?.parts || [];
+        return parts.map(p => p.text || "").join("");
     }
+
+    // ================================
+    // UI 출력
+    // ================================
     function appendMessage(role, text) {
-        const id = "msg_" + Date.now();
+        const id = `msg_${Date.now()}_${Math.random()}`;
 
         const wrapper = document.createElement("div");
         wrapper.className = role === "user" ? "my-question" : "AI-question";
-        wrapper.dataset.id = id;
+        wrapper.dataset.msgId = id;
 
         const bubble = document.createElement("div");
         bubble.className = role === "user" ? "my-answer" : "AI-answer";
@@ -122,13 +161,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         wrapper.appendChild(bubble);
         chatContainer.appendChild(wrapper);
-        scrollToBottom();
 
         return id;
     }
 
-    function replaceMessage(id, text) {
-        const el = chatContainer.querySelector(`[data-id="${id}"] .AI-answer`);
-        if (el) el.textContent = text;
+    function replaceMessageText(msgId, newText) {
+        const target = chatContainer.querySelector(
+            `[data-msg-id="${msgId}"]`
+        );
+        if (!target) return;
+        target.querySelector("div").textContent = newText;
     }
 });
