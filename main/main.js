@@ -15,6 +15,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const chatContainer = document.getElementById("answerSection");
   const defaultMessage = document.getElementById("defaultMessage");
 
+  const openBtn = document.getElementById("openBtn");
+  const closeBtn = document.getElementById("closeBtn");
+  const modalOverlay = document.getElementById("modalOverlay");
+
   const history = [];
 
   function scrollToBottom() {
@@ -34,7 +38,10 @@ document.addEventListener("DOMContentLoaded", () => {
     history.push({ role: "user", text });
     inputEl.value = "";
 
-    const loadingId = appendMessage("ai", "답변을 작성 중입니다. 잠시만 기다려 주세요.");
+    const loadingId = appendMessage(
+      "ai",
+      "답변을 생각하고 있어요. 잠시만 기다려 주세요."
+    );
     scrollToBottom();
 
     try {
@@ -42,13 +49,15 @@ document.addEventListener("DOMContentLoaded", () => {
       updateMessageText(loadingId, aiText);
 
       history.push({ role: "assistant", text: aiText });
-
       if (history.length > MAX_TURNS * 2) {
         history.splice(0, history.length - MAX_TURNS * 2);
       }
     } catch (err) {
       console.error(err);
-      updateMessageText(loadingId, "오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      updateMessageText(
+        loadingId,
+        "죄송합니다. 서버와 연결하는 중 문제가 발생했습니다."
+      );
     } finally {
       sendBtn.disabled = false;
       scrollToBottom();
@@ -56,7 +65,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function requestAI(messages) {
-    // 기존 대화 → Gemini v1 규격으로 변환
     const contents = messages.map(m => ({
       role: m.role === "assistant" ? "model" : "user",
       parts: [{ text: m.text }]
@@ -85,12 +93,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const data = await response.json();
-    return data?.candidates?.[0]?.content?.parts?.[0]?.text
-      || "답변을 불러오지 못했습니다.";
+    return (
+      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "답변을 불러오지 못했습니다."
+    );
   }
 
   function appendMessage(role, text) {
-    const id = `msg_${Date.now()}`;
+    const id = `msg_${Date.now()}_${Math.random()}`;
 
     const wrapper = document.createElement("div");
     wrapper.className = role === "user" ? "my-question" : "AI-question";
@@ -102,7 +112,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     wrapper.appendChild(bubble);
     chatContainer.appendChild(wrapper);
-
     return id;
   }
 
@@ -114,10 +123,37 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   sendBtn.addEventListener("click", () => sendMessage(inputEl.value));
-  inputEl.addEventListener("keydown", (e) => {
+  inputEl.addEventListener("keydown", e => {
     if (e.key === "Enter") {
       e.preventDefault();
       sendMessage(inputEl.value);
     }
   });
+
+  // 🔹 모달 제어
+  if (openBtn && modalOverlay) {
+    openBtn.addEventListener("click", () => {
+      modalOverlay.style.display = "flex";
+    });
+  }
+
+  if (closeBtn && modalOverlay) {
+    closeBtn.addEventListener("click", () => {
+      modalOverlay.style.display = "none";
+    });
+  }
+
+  if (modalOverlay) {
+    modalOverlay.addEventListener("click", e => {
+      if (e.target === modalOverlay) {
+        modalOverlay.style.display = "none";
+      }
+    });
+  }
+
+  // 🔹 HTML onclick 대응 (중요)
+  window.selectPrompt = function (text) {
+    inputEl.value = text;
+    sendMessage(text);
+  };
 });
